@@ -1,0 +1,28 @@
+version: 0.2
+env:
+  variables:
+    DIST_FOLDER: "dist"
+    BUILD_ENV: "dev"
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+  pre_build:
+    commands:
+      - echo "Install dependencies"
+      - npm install
+  build:
+    commands:
+      - echo "Doing a SAM translation on sample.yaml"
+      - echo "The package command will put the Lambda function code into S3"
+      - echo "It will then create a new version of the template file with the S3 url to the source code"
+      - echo "Learn more at https://docs.aws.amazon.com/lambda/latest/dg/serverless_app.html"
+      - aws cloudformation package --template-file sample.yaml --output-template-file sample-transformed.yaml --s3-bucket $SAM_BUCKET
+      - |-
+        echo "{ \"Parameters\" : { \"MasterSecretArn\" : \"$SECRET_ARN_DEV\", \"MasterSecretsManagerKey\" : \"$SECRET_MANAGER_KEY\", \"Stage\" : \"dev\" } }" > sample-configuration-dev.json
+        echo "{ \"Parameters\" : { \"MasterSecretArn\" : \"$SECRET_ARN_PROD\", \"MasterSecretsManagerKey\" : \"$SECRET_MANAGER_KEY\", \"Stage\" : \"prod\" } }" > sample-configuration-prod.json
+artifacts:
+  files:
+    - sample-transformed.yaml
+    - sample-configuration-dev.json
+    - sample-configuration-prod.json

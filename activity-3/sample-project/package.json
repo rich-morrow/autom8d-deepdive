@@ -1,0 +1,19 @@
+{
+  "name": "sample-project",
+  "version": "1.0.0",
+  "description": "Sample project to be committed to the CodeCommit repo created for the Quick Start",
+  "stackname": "sample-project",
+  "samtemplate": "sample.yaml",
+  "cftemplate": "sample-transformed.yaml",
+  "scripts": {
+    "start": "node api/handler.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "predeploy": "aws cloudformation package --template-file $npm_package_samtemplate --output-template-file $npm_package_cftemplate --s3-bucket $(aws cloudformation list-exports --query \"Exports[?Name=='SamBucket'].Value\" --output text)",
+    "deploy": "aws cloudformation deploy --template-file $npm_package_cftemplate --stack-name $npm_package_stackname --capabilities CAPABILITY_IAM",
+    "postdeploy": "aws cloudformation describe-stacks --stack-name $npm_package_stackname --query \"Stacks[?StackName=='$npm_package_stackname'].{StackName: StackName, Status: StackStatus, Reason: StackReason} | [0]\" --output json"
+  },
+  "author": "Trek10",
+  "devDependencies": {
+    "aws-sdk": "^2.298.0"
+  }
+}

@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  (qs-1ph8neha1) 
+  Serverless CICD Quick Start
+  Initial roles for child accounts
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      CentralAwsAccountId:
+        default: Shared Services account ID
+      ChildAccountRoleName:
+        default: Child account role name
+Parameters:
+  CentralAwsAccountId:
+    Description: The AWS account ID of the shared services account, from step 1.3. For guidance, see Finding Your AWS Account ID in the AWS documentation.
+    Type: String
+    AllowedPattern: (\d{12}|^$)
+    ConstraintDescription: must be an AWS account ID
+  ChildAccountRoleName:
+    Description: The name of the role to create in the development account. This name must be unique in the development account.
+    Default: ChildAccountRole
+    Type: String
+Resources:
+  ChildAccountRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref ChildAccountRoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS: !Ref CentralAwsAccountId
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: CfnStackAssumeRole
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - cloudformation:CreateStack
+            - cloudformation:DeleteStack
+            - cloudformation:DescribeStacks
+            - cloudformation:DeleteStack
+            - cloudformation:UpdateStack
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - iam:CreateRole
+            - iam:DeleteRole
+            - iam:GetRole
+            - iam:DetachRolePolicy
+            - iam:AttachRolePolicy
+            - iam:PutRolePolicy
+            - iam:DeleteRolePolicy
+            Resource:
+            - !Sub arn:aws:iam::${AWS::AccountId}:role/SampleLambdaRole-*
+            - !Sub arn:aws:iam::${AWS::AccountId}:role/CodePipelineDeploymentRole-*
+            - !Sub arn:aws:iam::${AWS::AccountId}:role/CodePipelineServiceRole-*
+Outputs:
+  RemoteAccountRole:
+    Value: !GetAtt ChildAccountRole.Arn
+  RemoteAccountRoleName:
+    Value: !Ref ChildAccountRoleName

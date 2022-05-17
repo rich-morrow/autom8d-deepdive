@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  MasterSecretArn:
+    Description: Master Secret ARN
+    Type: String
+  MasterSecretsManagerKey:
+    Description: KMS Key for the use of secrets across accounts
+    Type: String
+  Stage:
+    Description: Environment
+    Type: String
+
+Resources:
+  SampleApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: api/handler.sample
+      Runtime: nodejs12.x
+      Timeout: 10
+      MemorySize: 128
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref SampleDDbTable
+          SECRET_ARN: !Ref MasterSecretArn
+      Events:
+        GetTableData:
+          Type: Api
+          Properties:
+            Path: /sample/{id}
+            Method: get
+        PostTableData:
+          Type: Api
+          Properties:
+            Path: /sample/{id}
+            Method: post
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/SampleLambdaRole-${AWS::Region}-${AWS::AccountId}-${Stage}
+      Tags:
+        Sample: true
+        QuickStartAuthor: Trek10
+
+  SampleApiFunctionPermission:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub SampleApiFunctionPermission-${AWS::Region}-${AWS::AccountId}-${SampleApiFunction}
+      Roles:
+        - !Sub SampleLambdaRole-${AWS::Region}-${AWS::AccountId}-${Stage}
+      PolicyDocument:
+        Version: '2012-10-17' # Policy Document
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SampleDDbTable}
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${SampleApiFunction}:*
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref MasterSecretArn
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !Ref MasterSecretsManagerKey
+
+  SampleDDbTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: !Sub sample-table-${AWS::StackName}
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      Tags:
+        Sample: true
+        QuickStartAuthor: Trek10
+
+Outputs:
+  SampleApiUrl:
+    Value: !Sub ${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}
+    Description: API Gateway URL that triggers your Lambda
+  SampleTableName:
+    Value: !Ref SampleDDbTable
+    Description: DynamoDB Table name that is passed into the Lambda environment variables

@@ -1,0 +1,8 @@
+PROD ACCT ID:
+DEV ACCT ID:
+SHARED SVCS ACCT ID:
+
+
+DEV CloudFront Template (for Cross-Acct Role Creation): https://fwd.aws/YrVVz
+PROD CloudFront Template (for Cross-Acct Role Creation): https://fwd.aws/bgRB3
+SHARED-SVCS CloudFront Template (for creating entire stack): https://fwd.aws/X3Awe

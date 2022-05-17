@@ -1,0 +1,18 @@
+[
+    {
+        "ParameterKey": "QSS3BucketName",
+        "ParameterValue": "$[taskcat_autobucket]"
+    },
+    {
+        "ParameterKey": "AppName",
+        "ParameterValue": "override_this"
+    },
+    {
+        "ParameterKey": "DevAwsAccountId",
+        "ParameterValue": "override_this"
+    },
+    {
+        "ParameterKey": "ProdAwsAccountId",
+        "ParameterValue": "override_this"
+    }
+]
