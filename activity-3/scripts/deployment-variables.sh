@@ -10,6 +10,11 @@ set -euo pipefail
 # This can optionally be adjusted
 STACK_NAME=Serverless-CICD
 
+#### USED BY git-setup.sh TO DEFINE THE USER OUR PIPELINE RUNS AS
+# The name of the IAM user which is running our pipeline
+# override if your user is different than the one you deployed the stacks with
+USER=pipeline-user
+
 ##### ONLY USED BY git-setup.sh
 #####################
 # Relative path to local folder (that does not exist) to store git project 
